@@ -445,7 +445,8 @@ Enum | ELF Reloc Type       | Description                     | Details
 55   | R_RISCV_SET16        | Local label subtraction         |
 56   | R_RISCV_SET32        | Local label subtraction         |
 57   | R_RISCV_32_PCREL     | PC-relative reference           | word32 = S + A - PC
-58-191  | *Reserved*        | Reserved for future standard use |
+58   | R_RISCV_RELAX_NORVC  | Instruction pair cannot be relaxed to rvc |
+59-191  | *Reserved*        | Reserved for future standard use |
 192-255 | *Reserved*        | Reserved for nonstandard ABI extensions |
 
 Nonstandard extensions are free to use relocation numbers 192-255 for any
@@ -645,6 +646,76 @@ label:
    add t2, t2, t1
    sw t2, t0, %pcrel_lo(label)   # R_RISCV_PCREL_LO12_S (label)
 ```
+
+
+### R_RISCV_RELAX and R_RISCV_RELAX_NORVC
+
+The instruction and the instruction sequence paired with `R_RISCV_RELAX`
+indicating that linker can relax them to the shorter one, including the
+compressed instruction.  The `R_RISCV_RELAX_NORVC` is same as `R_RISCV_RELAX`
+except that the instruction and the sequence can't be relaxed to the
+compressed instruction.
+
+Example assembler shows how these two relocations work:
+
+```
+   .option rvc              # Enable C extension
+
+   call  symbol1
+
+   lui   a0,%hi(symbol2)
+   addi  a0,a0,%lo(symbol2)
+
+   .option norvc            # Disable C extension
+
+   call  symbol1
+
+   lui   a0,%hi(symbol2)
+   addi  a0,a0,%lo(symbol2)
+```
+
+expands to the following assembly and relocation:
+
+```
+   auipc ra, 0              # R_RISCV_CALL (symbol), R_RISCV_RELAX (symbol)
+   jalr  ra, ra, 0
+
+   lui   a0,%hi(symbol2)    # R_RISCV_HI20 (symbol), R_RISCV_RELAX (symbol)
+   addi  a0,a0,%lo(symbol2) # R_RISCV_LO12 (symbol), R_RISCV_RELAX (symbol)
+
+   auipc ra, 0              # R_RISCV_CALL (symbol), R_RISCV_RELAX_NORVC (symbol)
+   jalr  ra, ra, 0
+
+   lui   a0,%hi(symbol2)    # R_RISCV_HI20 (symbol), R_RISCV_RELAX_NORVC (symbol)
+   addi  a0,a0,%lo(symbol2) # R_RISCV_LO12 (symbol), R_RISCV_RELAX_NORVC (symbol)
+```
+
+and then linker may relax them to the following code:
+
+```
+   c.j/c.jal symbol1           # `c.j` exists on RV32 and RV64, but `c.jal`
+                                 is RV32-only.
+or
+   jal/jalr symbol1            # If the immediate of compressed instructions
+                                 can not cover the symbol1, then try this
+
+   addi a0, gp, (symbol2 - gp) # Do this first if symbol2 is in range of gp
+or
+   c.lui a0 %hi(symbol2)       # If symbol2 isn't in range of gp, then try
+   addi a0, a0, %lo(symbol2)     to relax the `lui` to `c.lui`
+
+   jal/jalr symbol1            # R_RISCV_RELAX_NORVC is paired with `call`,
+                                 the `c.j` and `c.jal` are not allowed
+
+   addi a0, gp, (symbol2 - gp) # R_RISCV_RELAX_NORVC are paired with `lui`
+                                 and `addi`, the `c.lui` is not allowed
+```
+
+The first `call` may be relaxed to a compressed `jal` or `j`, and the second
+`lui and addi` pattern may be relaxed to the `c.lui and addi` pattern by linker
+if possible, but the third and forth one can only be relaxed to a 4-byte
+`jal`/`jalr` and `addi with gp relative address` since the `.option norvc`
+directive is set.
 
 
 ## <a name=thread-local-storage></a>Thread Local Storage
