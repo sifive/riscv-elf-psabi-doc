@@ -1,6 +1,6 @@
 # RISC-V Compact Code Model
 
-#### Evandro Menezes
+#### Evandro Menezes  
 #### evandro.menezes@sifive.com
 
 ## Introduction
@@ -11,15 +11,15 @@ When the code or data of a program is within the native range of instructions, i
 
 | Code models | Small code | Large code |
 | --- | --- | --- |
-| Small data | Small model | Medium model |
-| Large data | Compact model | Large model |
+| **Small data** | Small model | Medium model |
+| **Large data** | Compact model | Large model |
 
 ## RISC-V Data Models
 
 | Data models | Address space | Code addressing range | Data addressing range |
 | --- | --- | --- | --- |
-| ILP32 | 4GiB | 4GiB | 4GiB |
-| LP64 | 16EiB | 2GiB | 4GiB |
+| **ILP32** | 4GiB | 4GiB | 4GiB |
+| **LP64** | 16EiB | 2GiB | 4GiB |
 
 For ILP32, the whole address space is within the native range for both code and data. Therefore, the small code model is sufficient.
 
@@ -68,12 +68,12 @@ These new relocation types are added:
 | `R_RISCV_GOT_GPREL_STORE` | (relaxation purposes) |
 | `R_RISCV_64_PCREL` | S - P + A |
 
-[^1]: Legend for the relocation calculations:
-: A: the addend used to compute the value of the relocatable field.
-: G: the offset into the GOT where the value of the symbol will reside.
-: GP: represents the address of the global data area.
-: P: the place (section offset or address) of the relocation.
-: S: the value of the symbol.
+[^1]: Legend for the relocation calculations: 
+  A: the addend used to compute the value of the relocatable field.
+  G: the offset into the GOT where the value of the symbol will reside.
+  GP: represents the address of the global data area.
+  P: the place (section offset or address) of the relocation.
+  S: the value of the symbol.
 
 [^2]: The new relocation types `R_RISCV_GPREL_LO20_I` and `R_RISCV_GPREL_LO20_S` are used instead of the existing `R_RISCV_GPREL_I` and `R_RISCV_GPREL_S` because of potentially different use by the linker currently.
 
@@ -85,7 +85,7 @@ Functions in executable objects expect that the `gp` register was initialized to
 
 Functions in shared objects that refer to the global pointer must setup the `gp` register in its prolog, for example:
 
-```
+```assembly
   auipc	gp, %pcrel_hi(__global_pointer__)
   addi	gp, gp, %pcrel_lo(__global_pointer__)
   ld	t0, 0(gp)
@@ -151,82 +151,97 @@ The cost of the compact code model can be quite significant, so it is important 
 ### Address Literals
 
 This macro is used to produce the literal for a local symbol:
-
-    lla	<rd>, %gprel(<symbol>)
+```assembly
+lla	<rd>, %gprel(<symbol>)
+```
 
 Which expands to:
-```
+```assembly
 lui	<rd>, %gprel_hi(<symbol>)		// R_RISCV_GPREL_HI20 (symbol)
 add	<rd>, <rd>, gp, %gprel(<symbol>)	// R_RISCV_GPREL_ADD (symbol)
 addi	<rd>, <rd>, %gprel_lo(<symbol>)		// R_RISCV_GPREL_LO20_I (symbol)
 ```
-If the literal for the symbol is allocated within the global data area, then this sequence may be relaxed to:
 
-    addi	<rd>, gp, %gprel_lo(<symbol>)	// R_RISCV_GPREL_LO20_I (symbol)
+If the literal for the symbol is allocated within the global data area, then this sequence may be relaxed to:
+```assembly
+addi	<rd>, gp, %gprel_lo(<symbol>)		// R_RISCV_GPREL_LO20_I (symbol)
+```
 
 For a global symbol, this macro is used to produce its literal:
-
-    la	<rd>, %got_gprel(<symbol>)
+```assembly
+la	<rd>, %got_gprel(<symbol>)
+```
 
 Which expands to:
-```
+```assembly
 lui	<rd>, %got_gprel_hi(<symbol>)		// R_RISCV_GOT_GPREL_HI20 (symbol)
 add	<rd>, <rd>, gp, %got_gprel(<symbol>)	// R_RISCV_GOT_GPREL_ADD (symbol)
 ld	<rd>, %got_gprel_lo(<symbol>)(<rd>)	// R_RISCV_GOT_GPREL_LO20_I (symbol)
 ```
-If the GOT entry for the literal is allocated in the vicinity of the global data area, then this sequence may be relaxed to:
 
-    ld	<rd>, %got_gprel_lo(<symbol>)(gp)	// R_RISCV_GOT_GPREL_LO20_I (symbol)
+If the GOT entry for the literal is allocated in the vicinity of the global data area, then this sequence may be relaxed to:
+```assembly
+ld	<rd>, %got_gprel_lo(<symbol>)(gp)	// R_RISCV_GOT_GPREL_LO20_I (symbol)
+```
 
 If the global symbol is allocated in the executable object, then this macro is equivalent to:
-
-    lla	<rd>, %gprel(<symbol>)
+```assembly
+lla	<rd>, %gprel(<symbol>)
+```
 
 ### Loads and Stores
 
 For loading from or storing to a local symbol, these macros are used:
-```
+```assembly
 l{b|h|w|d} <rd>, %gprel(<symbol>)
 s{b|h|w|d} <rd>, %gprel(<symbol>), <rt>
 ```
+
 Which expand to:
-```
+```assembly
 lui	<rd>, %gprel_hi(<symbol>)		// R_RISCV_GPREL_HI20 (symbol)
 add	<rd>, <rd>, gp, %gprel(<symbol>)	// R_RISCV_GPREL_ADD (symbol)
 l{b|h|w|d} <rd>, %gprel_lo(<symbol>)(<rd>)	// R_RISCV_GPREL_LO20_I (symbol)
 ```
 
 And:
-```
+```assembly
 lui	<rt>, %gprel_hi(<symbol>)		// R_RISCV_GPREL_HI20 (symbol)
 add	<rt>, <rt>, gp, %gprel(<symbol>)	// R_RISCV_GPREL_ADD (symbol)
 s{b|h|w|d} <rd>, %gprel_lo(<symbol>)(<rt>)	// R_RISCV_GPREL_LO20_S (symbol)
 ```
-If the symbol is allocated within the global data area, then these sequences may be relaxed to:
 
-    l{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)	// R_RISCV_GPREL_LO20_I (symbol)
+If the symbol is allocated within the global data area, then these sequences may be relaxed to:
+```assembly
+l{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)	// R_RISCV_GPREL_LO20_I (symbol)
+```
 
 And:
-
-    s{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)	// R_RISCV_GPREL_LO20_S (symbol)
+```assembly
+s{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)	// R_RISCV_GPREL_LO20_S (symbol)
+```
 
 For loading from or storing to a global symbol, these macros are used:
-```
+```assembly
 l{b|h|w|d} <rd>, <offset>(<rt>), %got_gprel(<symbol>)
 s{b|h|w|d} <rd>, <offset>(<rt>), %got_gprel(<symbol>)
 ```
-Which expand to:
-```
-l{b|h|w|d} <rd>, <offset>(<rt>)	// R_RISCV_GOT_GPREL_LOAD (symbol)
-s{b|h|w|d} <rd>, <offset>(<rt>)	// R_RISCV_GOT_GPREL_STORE (symbol)
-```
-If the global symbol is allocated and referenced within the global data area of the executable object, then these macros are equivalent to:
 
-    l{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp)	// R_RISCV_GPREL_LO20_I (symbol)
+Which expand to:
+```assembly
+l{b|h|w|d} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_LOAD (symbol)
+s{b|h|w|d} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_STORE (symbol)
+```
+
+If the global symbol is allocated and referenced within the global data area of the executable object, then these macros are equivalent to:
+```assembly
+l{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp) // R_RISCV_GPREL_LO20_I (symbol)
+```
 
 And:
-
-    s{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp)	// R_RISCV_GPREL_LO20_S (symbol)
+```assembly
+s{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp) // R_RISCV_GPREL_LO20_S (symbol)
+```
 
 ## Appendix
 
