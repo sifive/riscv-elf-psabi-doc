@@ -77,6 +77,9 @@ These new relocation types are added:
 
 [^2]: The new relocation types `R_RISCV_GPREL_LO20_I` and `R_RISCV_GPREL_LO20_S` are used instead of the existing `R_RISCV_GPREL_I` and `R_RISCV_GPREL_S` because of potentially different use by the linker currently.
 
+This new ELF header flag is added:
+* `EF_RISCV_COMPACT` (`e_flags & 0x20`): This bit is set when the binary targets the compact code model.
+
 ## Compact Model Coding Examples
 
 ### Function Prolog
