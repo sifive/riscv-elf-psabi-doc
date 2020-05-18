@@ -422,17 +422,21 @@ rules about 2✕XLEN aligned arguments being passed in "aligned" register pairs.
     and RV64 ISAs only allow 32-bit instruction alignment).  When linking
     objects which specify EF_RISCV_RVC, the linker is permitted to use RVC
     instructions such as C.JAL in the relaxation process.
+  * EF_RISCV_FLOAT_ABI_SOFT (0x0000)
   * EF_RISCV_FLOAT_ABI_SINGLE (0x0002)
   * EF_RISCV_FLOAT_ABI_DOUBLE (0x0004)
-  * EF_RISCV_FLOAT_ABI_QUAD (0x0006): These three flags identify the floating
-    point ABI in use for this ELF file.  They store the largest floating-point
-    type that ends up in registers as part of the ABI (but do not control if
-    code generation is allowed to use floating-point internally).  The rule is
-    that if you have a floating-point type in a register, then you also have
-    all smaller floating-point types in registers.  For example _DOUBLE would
+  * EF_RISCV_FLOAT_ABI_QUAD (0x0006): These flags identify the floating point
+    ABI in use for this ELF file.  They store the largest floating-point type
+    that ends up in registers as part of the ABI (but do not control if code
+    generation is allowed to use floating-point internally).  The rule is that
+    if you have a floating-point type in a register, then you also have all
+    smaller floating-point types in registers.  For example _DOUBLE would
     store "float" and "double" values in F registers, but would not store "long
     double" values in F registers.  If none of the float ABI flags are set, the
     object is taken to use the soft-float ABI.
+  * EF_RISCV_FLOAT_ABI (0x0006): This macro is used as a mask to test for one
+    of the above floating-point ABIs, e.g.,
+    `(e_flags & EF_RISCV_FLOAT_ABI) == EF_RISCV_FLOAT_ABI_DOUBLE`.
   * EF_RISCV_RVE (0x0008): This bit is set when the binary targets the E ABI.
   * EF_RISCV_TSO (0x0010): This bit is set when the binary requires the RVTSO
     memory consistency model.
@@ -717,7 +721,7 @@ immediate on the add, load or store instruction the linker finds the
 instruction. The addresses for pair of relocations are calculated like this:
 
  - `hi20 = ((symbol_address - hi20_reloc_offset + 0x800) >> 12);`
- - `lo12 = symbol_address - hi20_reloc_offset - hi20;`
+ - `lo12 = symbol_address - hi20_reloc_offset - (hi20 << 12);`
 
 The successive instruction has a signed 12-bit immediate so the value of the
 preceding high 20-bit relocation may have 1 added to it.
