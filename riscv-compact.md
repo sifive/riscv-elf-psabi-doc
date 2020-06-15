@@ -53,20 +53,19 @@ These new relocation functions are added to the assembler:
 
 These new relocation types are added:
 
-| Relocation type | Details[^1] |
-| --- | --- |
-| `R_RISCV_GPREL_HI20` | S - GP + A |
-| `R_RISCV_GPREL_LO20_I`[^2] | S - GP + A |
-| `R_RISCV_GPREL_LO20_S`[^2] | S - GP + A |
-| `R_RISCV_GPREL_ADD` | (relaxation purposes) |
-| `R_RISCV_GPREL_LOAD` | (relaxation purposes) |
-| `R_RISCV_GPREL_STORE` | (relaxation purposes) |
-| `R_RISCV_GOT_GPREL_HI20` | G - GP + A |
-| `R_RISCV_GOT_GPREL_LO12_I` | G - GP + A |
-| `R_RISCV_GOT_GPREL_ADD` | (relaxation purposes) |
-| `R_RISCV_GOT_GPREL_LOAD` | (relaxation purposes) |
-| `R_RISCV_GOT_GPREL_STORE` | (relaxation purposes) |
-| `R_RISCV_64_PCREL` | S - P + A |
+| Relocation type | Calculation[^1] | Details |
+| --- | --- | --- |
+| `R_RISCV_GPREL_HI20` | S + A - GP | `%gprel_hi(<symbol>)` |
+| `R_RISCV_GPREL_LO20_I`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
+| `R_RISCV_GPREL_LO20_S`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
+| `R_RISCV_GPREL_ADD` |  | `%gprel(<symbol>)` |
+| `R_RISCV_GPREL_LOAD` |  | `%gprel(<symbol>)` |
+| `R_RISCV_GOT_GPREL_HI20` | S + A - GP | `%got_gprel_hi(<symbol>)` |
+| `R_RISCV_GOT_GPREL_LO12_I` | S + A - GP | `%got_gprel_lo(<symbol>)` |
+| `R_RISCV_GOT_GPREL_ADD` |  | `%got_gprel(<symbol>)` |
+| `R_RISCV_GOT_GPREL_LOAD` |  | `%got_gprel(<symbol>)` |
+| `R_RISCV_GOT_GPREL_STORE` |  | `%got_gprel(<symbol>)` |
+| `R_RISCV_64_PCREL` | S + A - P |  |
 
 [^1]: Legend for the relocation calculations: 
   A: the addend used to compute the value of the relocatable field.
@@ -75,7 +74,7 @@ These new relocation types are added:
   P: the place (section offset or address) of the relocation.
   S: the value of the symbol.
 
-[^2]: The new relocation types `R_RISCV_GPREL_LO20_I` and `R_RISCV_GPREL_LO20_S` are used instead of the existing `R_RISCV_GPREL_I` and `R_RISCV_GPREL_S` because of potentially different use by the linker currently.
+[^2]: The relocation types `R_RISCV_GPREL_LO20_I` and `R_RISCV_GPREL_LO20_S` are relaxed into `R_RISCV_GPREL_I` and `R_RISCV_GPREL_S` respectively.
 
 This new ELF header flag is added:
 * `EF_RISCV_COMPACT` (`e_flags & 0x20`): This bit is set when the binary targets the compact code model.
