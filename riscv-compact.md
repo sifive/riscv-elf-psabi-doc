@@ -1,6 +1,6 @@
 # RISC-V Compact Code Model
 
-#### Evandro Menezes  
+#### Evandro Menezes
 #### evandro.menezes@sifive.com
 
 ## Introduction
@@ -56,8 +56,8 @@ These new relocation types are added:
 | Relocation type | Calculation[^1] | Details |
 | --- | --- | --- |
 | `R_RISCV_GPREL_HI20` | S + A - GP | `%gprel_hi(<symbol>)` |
-| `R_RISCV_GPREL_LO20_I`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
-| `R_RISCV_GPREL_LO20_S`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
+| `R_RISCV_GPREL_LO12_I`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
+| `R_RISCV_GPREL_LO12_S`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
 | `R_RISCV_GPREL_ADD` |  | `%gprel(<symbol>)` |
 | `R_RISCV_GPREL_LOAD` |  | `%gprel(<symbol>)` |
 | `R_RISCV_GOT_GPREL_HI20` | S + A - GP | `%got_gprel_hi(<symbol>)` |
@@ -67,14 +67,14 @@ These new relocation types are added:
 | `R_RISCV_GOT_GPREL_STORE` |  | `%got_gprel(<symbol>)` |
 | `R_RISCV_64_PCREL` | S + A - P |  |
 
-[^1]: Legend for the relocation calculations: 
+[^1]: Legend for the relocation calculations:
   A: the addend used to compute the value of the relocatable field.
   G: the offset into the GOT where the value of the symbol will reside.
   GP: represents the address of the global data area.
   P: the place (section offset or address) of the relocation.
   S: the value of the symbol.
 
-[^2]: The relocation types `R_RISCV_GPREL_LO20_I` and `R_RISCV_GPREL_LO20_S` are relaxed into `R_RISCV_GPREL_I` and `R_RISCV_GPREL_S` respectively.
+[^2]: The relocation types `R_RISCV_GPREL_LO12_I` and `R_RISCV_GPREL_LO12_S` are relaxed into `R_RISCV_GPREL_I` and `R_RISCV_GPREL_S` respectively.
 
 This new ELF header flag is added:
 * `EF_RISCV_COMPACT` (`e_flags & 0x20`): This bit is set when the binary targets the compact code model.
@@ -111,40 +111,40 @@ The code examples below assume that the `gp` register points to the global data 
 
 | Source | Assembly | Relocations |
 | -- | -- | -- |
-| `extern int src;` | `.extern src` | `R_RISCV_64` |
-| `extern int dst;` | `.extern dst` | `R_RISCV_64` |
-| `extern void *ptr;` | `.extern ptr` | `R_RISCV_64` |
-| `static int lsrc;` | `.comm .Llsrc, 4` |  |
-| `static int ldst;` | `.comm .Lldst, 4` |  |
-| `static void foo(void);` | `.local foo` |  |
+| `extern int src;` | `.extern src`		| `R_RISCV_64` |
+| `extern int dst;` | `.extern dst`		| `R_RISCV_64` |
+| `extern void *ptr;` | `.extern ptr`		| `R_RISCV_64` |
+| `static int lsrc;` | `.comm .Llsrc, 4`		|  |
+| `static int ldst;` | `.comm .Lldst, 4`		|  |
+| `static void foo(void);` | `.local foo`		|  |
 |  | `.text` |  |
-| `dst = src;` | `lui	t0, %got_gprel_hi(src)` | `R_RISCV_GOT_GPREL_HI` |
-|  | `add	t0, t0, gp, %got_gprel(src)` | `R_RISCV_GOT_GPREL_ADD` |
-|  | `ld	t0, %got_gprel_lo(src)(t0)` | `R_RISCV_GOT_GPREL_LO12_I` |
-|  | `lw	t2, 0(t0), %got_gprel(src)` | `R_RISCV_GOT_GPREL_LOAD` |
-|  | `lui	t1, %got_gprel_hi(dst)` | `R_RISCV_GOT_GPREL_HI` |
-|  | `add	t1, t1, gp, %got_gprel(dst)` | ` R_RISCV_GOT_GPREL_ADD` |
-|  | `ld	t1, %got_gprel_lo(dst)(t1)` | `R_RISCV_GOT_GPREL_LO12_I` |
-|  | `sw	t2, 0(t1), %got_gprel(dst)` | `R_RISCV_GOT_GPREL_STORE` |
-| `ptr = &src;` | `lui	t0, %got_gprel_hi(src)` | `R_RISCV_GOT_GPREL_HI` |
-|  | `add	t0, t0, gp, %got_gprel(src)` | `R_RISCV_GOT_GPREL_ADD` |
-|  | `ld	t0, %got_gprel_lo(src)(t0)` | `R_RISCV_GOT_GPREL_LO12_I` |
-|  | `lui	t1, %got_gprel_hi(ptr)` | `R_RISCV_GOT_GPREL_HI` |
-|  | `add	t1, t1, gp, %got_gprel(ptr)` | `R_RISCV_GOT_GPREL_ADD` |
-|  | `ld	t1, %got_gprel_lo(ptr)(t1)` | `R_RISCV_GOT_GPREL_LO12_I` |
-|  | `sd	t0, 0(t1), %got_gprel(ptr)` | `R_RISCV_GOT_GPREL_STORE` |
-| `ldst = &lsrc;` | `lui	t0, %gprel_hi(.Llsrc)` | `R_RISCV_GPREL_HI` |
-|  | `add	t0, t0, gp, %gprel(.Llsrc)` | `R_RISCV_GPREL_ADD` |
-|  | `addi	t0, t0, %gprel_lo(.Llsrc)` | `R_RISCV_GPREL_LO20_I` |
-|  | `lui	t1, %gprel_hi(.Lldst)` | `R_RISCV_GPREL_HI` |
-|  | `add	t1, t1, gp, %gprel(.Lldst)` | `R_RISCV_GPREL_ADD` |
-|  | `sd	t0, %gprel_lo(.Lldst)(t1)` | `R_RISCV_GPREL_LO20_S` |
-| `ptr = foo;` | `la	t0, foo` | `R_RISCV_PCREL_HI` |
-|  |  | `R_RISCV_PCREL_LO12_I` |
-|  | `lui	t1, %got_gprel_hi(ptr)` | `R_RISCV_GOT_GPREL_HI` |
-|  | `add	t1, t1, gp, %got_gprel(ptr)` | `R_RISCV_GOT_GPREL_ADD` |
-|  | `ld	t1, %got_gprel_lo(ptr)(t1)` | `R_RISCV_GOT_GPREL_LO12_I` |
-|  | `sd	t0, 0(t1), %got_gprel(ptr)` | `R_RISCV_GOT_GPREL_STORE` |
+| `dst = src;` | `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20` |
+|  | `add	t0, t0, gp, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD` |
+|  | `ld		t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `lw		t2, 0(t0), %got_gprel(src)`	| `R_RISCV_GOT_GPREL_LOAD` |
+|  | `lui	t1, %got_gprel_hi(dst)`		| `R_RISCV_GOT_GPREL_HI20` |
+|  | `add	t1, t1, gp, %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_ADD` |
+|  | `ld		t1, %got_gprel_lo(dst)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `sw		t2, 0(t1), %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_STORE` |
+| `ptr = &src;` | `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20` |
+|  | `add	t0, t0, gp, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD` |
+|  | `ld		t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `lui	t1, %got_gprel_hi(ptr)`		| `R_RISCV_GOT_GPREL_HI20` |
+|  | `add	t1, t1, gp, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD` |
+|  | `ld		t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `sd		t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE` |
+| `ldst = &lsrc;` | `lui	t0, %gprel_hi(.Llsrc)`	| `R_RISCV_GPREL_HI20` |
+|  | `add	t0, t0, gp, %gprel(.Llsrc)`	| `R_RISCV_GPREL_ADD` |
+|  | `addi	t0, t0, %gprel_lo(.Llsrc)`		| `R_RISCV_GPREL_LO12_I` |
+|  | `lui	t1, %gprel_hi(.Lldst)`		| `R_RISCV_GPREL_HI20` |
+|  | `add	t1, t1, gp, %gprel(.Lldst)`	| `R_RISCV_GPREL_ADD` |
+|  | `sd		t0, %gprel_lo(.Lldst)(t1)`		| `R_RISCV_GPREL_LO12_S` |
+| `ptr = foo;` | `la	t0, foo`			| `R_RISCV_PCREL_HI20` |
+|  |  						| `R_RISCV_PCREL_LO12_I` |
+|  | `lui	t1, %got_gprel_hi(ptr)`		| `R_RISCV_GOT_GPREL_HI20` |
+|  | `add	t1, t1, gp, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD` |
+|  | `ld		t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `sd		t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE` |
 
 ## Relaxation
 
@@ -161,12 +161,12 @@ Which expands to:
 ```assembly
 lui	<rd>, %gprel_hi(<symbol>)		// R_RISCV_GPREL_HI20 (symbol)
 add	<rd>, <rd>, gp, %gprel(<symbol>)	// R_RISCV_GPREL_ADD (symbol)
-addi	<rd>, <rd>, %gprel_lo(<symbol>)		// R_RISCV_GPREL_LO20_I (symbol)
+addi	<rd>, <rd>, %gprel_lo(<symbol>)		// R_RISCV_GPREL_LO12_I (symbol)
 ```
 
 If the literal for the symbol is allocated within the global data area, then this sequence may be relaxed to:
 ```assembly
-addi	<rd>, gp, %gprel_lo(<symbol>)		// R_RISCV_GPREL_LO20_I (symbol)
+addi	<rd>, gp, %gprel_lo(<symbol>)		// R_RISCV_GPREL_I (symbol)
 ```
 
 For a global symbol, this macro is used to produce its literal:
@@ -178,12 +178,12 @@ Which expands to:
 ```assembly
 lui	<rd>, %got_gprel_hi(<symbol>)		// R_RISCV_GOT_GPREL_HI20 (symbol)
 add	<rd>, <rd>, gp, %got_gprel(<symbol>)	// R_RISCV_GOT_GPREL_ADD (symbol)
-ld	<rd>, %got_gprel_lo(<symbol>)(<rd>)	// R_RISCV_GOT_GPREL_LO20_I (symbol)
+ld	<rd>, %got_gprel_lo(<symbol>)(<rd>)	// R_RISCV_GOT_GPREL_LO12_I (symbol)
 ```
 
 If the GOT entry for the literal is allocated in the vicinity of the global data area, then this sequence may be relaxed to:
 ```assembly
-ld	<rd>, %got_gprel_lo(<symbol>)(gp)	// R_RISCV_GOT_GPREL_LO20_I (symbol)
+ld	<rd>, %got_gprel_lo(<symbol>)(gp)	// R_RISCV_GOT_GPREL_LO12_I (symbol)
 ```
 
 If the global symbol is allocated in the executable object, then this macro is equivalent to:
@@ -203,24 +203,24 @@ Which expand to:
 ```assembly
 lui	<rd>, %gprel_hi(<symbol>)		// R_RISCV_GPREL_HI20 (symbol)
 add	<rd>, <rd>, gp, %gprel(<symbol>)	// R_RISCV_GPREL_ADD (symbol)
-l{b|h|w|d} <rd>, %gprel_lo(<symbol>)(<rd>)	// R_RISCV_GPREL_LO20_I (symbol)
+l{b|h|w|d} <rd>, %gprel_lo(<symbol>)(<rd>)	// R_RISCV_GPREL_LO12_I (symbol)
 ```
 
 And:
 ```assembly
 lui	<rt>, %gprel_hi(<symbol>)		// R_RISCV_GPREL_HI20 (symbol)
 add	<rt>, <rt>, gp, %gprel(<symbol>)	// R_RISCV_GPREL_ADD (symbol)
-s{b|h|w|d} <rd>, %gprel_lo(<symbol>)(<rt>)	// R_RISCV_GPREL_LO20_S (symbol)
+s{b|h|w|d} <rd>, %gprel_lo(<symbol>)(<rt>)	// R_RISCV_GPREL_LO12_S (symbol)
 ```
 
 If the symbol is allocated within the global data area, then these sequences may be relaxed to:
 ```assembly
-l{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)	// R_RISCV_GPREL_LO20_I (symbol)
+l{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)	// R_RISCV_GPREL_I (symbol)
 ```
 
 And:
 ```assembly
-s{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)	// R_RISCV_GPREL_LO20_S (symbol)
+s{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)	// R_RISCV_GPREL_S (symbol)
 ```
 
 For loading from or storing to a global symbol, these macros are used:
@@ -237,12 +237,12 @@ s{b|h|w|d} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_STORE (symbol)
 
 If the global symbol is allocated and referenced within the global data area of the executable object, then these macros are equivalent to:
 ```assembly
-l{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp) // R_RISCV_GPREL_LO20_I (symbol)
+l{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp) // R_RISCV_GPREL_LO12_I (symbol)
 ```
 
 And:
 ```assembly
-s{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp) // R_RISCV_GPREL_LO20_S (symbol)
+s{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp) // R_RISCV_GPREL_LO12_S (symbol)
 ```
 
 ## Appendix
@@ -250,98 +250,99 @@ s{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp) // R_RISCV_GPREL_LO20_S (sym
 The table below demonstrates the results of relaxation when the global is allocated and referenced in the executable object:
 
 
-| Source | Assembly | Relaxed |
-| -- | -- | -- |
-| `extern int src;` | `.extern src` |  |
-| `extern int dst;` | `.extern dst` |  |
-| `extern void *ptr;` | `.extern ptr` |  |
-| `static void foo(void);` | `.local foo` |  |
-|  | `.text` |  |
-| `dst = src;` | `lui	t0, %got_gprel_hi(src)` | `lui	t0, %gprel_hi(src)` |
-|  | `add	t0, t0, gp, %got_gprel(src)` | `add	t0, t0, gp` |
-|  | `ld	t0, %got_gprel_lo(src)(t0)` | `addi	t0, t0, %gprel_lo(src)` |
-|  | `lw	t2, 0(t0), %got_gprel(src)` | `lw	t2, 0(t0)` |
-|  | `lui	t1, %got_gprel_hi(dst)` | `lui	t1, %gprel_hi(dst)` |
-|  | `add	t1, t1, gp, %got_gprel(dst)` | `add	t1, t1, gp` |
-|  | `ld	t1, %got_gprel_lo(dst)(t1)` | `addi	t1, t1, %gprel_lo(dst)` |
-|  | `sw	t2, 0(t1), %got_gprel(dst)` | `sw	t2, 0(t1)` |
-| `ptr = &src;` | `lui	t0, %got_gprel_hi(src)` | `lui	t0, %gprel_hi(src)` |
-|  | `add	t0, t0, gp, %got_gprel(src)` | `add	t0, t0, gp` |
-|  | `ld	t0, %got_gprel_lo(src)(t0)` | `addi	t0, t0, %gprel_lo(src)` |
-|  | `lui	t1, %got_gprel_hi(ptr)` | `lui	t1, %gprel_hi(ptr)` |
-|  | `add	t1, t1, gp, %got_gprel(ptr)` | `add	t1, t1, gp` |
-|  | `ld	t1, %got_gprel_lo(ptr)(t1)` | `addi	t1, t1, %gprel_lo(ptr)` |
-|  | `sd	t0, 0(t1), %got_gprel(ptr)` | `sd	t0, 0(t1)` |
-| `ptr = foo;` | `la	t0, foo` | `la	t0, foo` |
-|  | `lui	t1, %got_gprel_hi(ptr)` | `lui	t1, %gprel_hi(ptr)` |
-|  | `add	t1, t1, gp, %got_gprel(ptr)` | `add	t1, t1, gp` |
-|  | `ld	t1, %got_gprel_lo(ptr)(t1)` | `addi	t1, t1, %gprel_lo(ptr)` |
-|  | `sd	t0, 0(t1), %got_gprel(ptr)` | `sd	t0, 0(t1)` |
+| Source | Assembly | Relocations | Relaxed | Relocations |
+| --     | --       | --          | --      | --          |
+| `extern int src;` | `.extern src` |  |  |  |
+| `extern int dst;` | `.extern dst` |  |  |  |
+| `extern void *ptr;` | `.extern ptr` |  |  |  |
+| `static void foo(void);` | `.local foo` |  |  |  |
+|  | `.text` |  |  |  |
+| `dst = src;`	| `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`		| `lui	t0, %gprel_hi(src)`	| `R_RISCV_GPREL_HI20` |
+|  | `add	t0, t0, gp, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`		| `add	t0, t0, gp` |
+|  | `ld		t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t0, t0, %gprel_lo(src)`	| `R_RISCV_GPREL_I` |
+|  | `lw		t2, 0(t0), %got_gprel(src)`	| `R_RISCV_GOT_GPREL_LOAD`		| `lw	t2, 0(t0)` |
+|  | `lui	t1, %got_gprel_hi(dst)`		| `R_RISCV_GOT_GPREL_HI20`		| `lui	t1, %gprel_hi(dst)`	| `R_RISCV_GPREL_HI20` |
+|  | `add	t1, t1, gp, %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_ADD`		| `add	t1, t1, gp` |
+|  | `ld		t1, %got_gprel_lo(dst)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t1, t1, %gprel_lo(dst)`	| `R_RISCV_GPREL_I` |
+|  | `sw		t2, 0(t1), %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_STORE`	| `sw	t2, 0(t1)` |
+| `ptr = &src;`	| `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`		| `lui	t0, %gprel_hi(src)`	| `R_RISCV_GPREL_HI20` |
+|  | `add	t0, t0, gp, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`		| `add	t0, t0, gp` |
+|  | `ld		t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t0, t0, %gprel_lo(src)`	| `R_RISCV_GPREL_I` |
+|  | `lui	t1, %got_gprel_hi(ptr)`		| `R_RISCV_GOT_GPREL_HI20`		| `lui	t1, %gprel_hi(ptr)`	| `R_RISCV_GPREL_HI20` |
+|  | `add	t1, t1, gp, %got_gprel(ptr)` 	| `R_RISCV_GOT_GPREL_ADD`		| `add	t1, t1, gp` |
+|  | `ld		t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t1, t1, %gprel_lo(ptr)`	| `R_RISCV_GPREL_I` |
+|  | `sd		t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	| `sd	t0, 0(t1)` |
+| `ptr = foo;`	| `la	t0, foo`			| `R_RISCV_PCREL_HI20`		| `la	t0, foo` 		| `R_RISCV_PCREL_HI20` |
+|  |						| `R_RISCV_PCREL_LO12_I`		|				| `R_RISCV_PCREL_LO12_I` |
+|  | `lui	t1, %got_gprel_hi(ptr)`		| `R_RISCV_GOT_GPREL_HI20`		| `lui	t1, %gprel_hi(ptr)`	| `R_RISCV_GPREL_HI20` |
+|  | `add	t1, t1, gp, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD`		| `add	t1, t1, gp` |
+|  | `ld		t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t1, t1, %gprel_lo(ptr)`	| `R_RISCV_PCREL_LO12_I` |
+|  | `sd		t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	| `sd	t0, 0(t1)` |
 
 The table below demonstrates the results of relaxation when the GOT entry for the global is in the vicinity of the global data area:
 
-| Source | Assembly | Relaxed |
-| -- | -- | -- |
-| `extern int src;` | `.extern src` |  |
-| `extern int dst;` | `.extern dst` |  |
-| `extern void *ptr;` | `.extern ptr` |  |
-| `static void foo(void);` | `.local foo` |  |
-|  | `.text` |  |
-| `dst = src;` | `lui	t0, %got_gprel_hi(src)` |  |
-|  | `add	t0, t0, gp, %got_gprel(src)` |  |
-|  | `ld	t0, %got_gprel_lo(src)(t0)` | `ld t0, %got_gprel_lo(src)(gp)` |
-|  | `lw	t2, 0(t0), %got_gprel(src)` | `lw t2, 0(t0)` |
-|  | `lui	t1, %got_gprel_hi(dst)` |  |
-|  | `add	t1, t1, gp, %got_gprel(dst)` |  |
-|  | `ld	t1, %got_gprel_lo(dst)(t1)` | `ld t1, %got_gprel_lo(dst)(gp)` |
-|  | `sw	t2, 0(t1), %got_gprel(dst)` | `sw t2, 0(t1)` |
-| `ptr = &src;` | `lui	t0, %got_gprel_hi(src)` |  |
-|  | `add t0, t0, gp, %got_gprel(src)` |  |
-|  | `ld t0, %got_gprel_lo(src)(t0)` | `ld t0, %got_gprel_lo(src)(gp)` |
-|  | `lui t1, %got_gprel_hi(ptr)` |  |
-|  | `add t1, t1, gp, %got_gprel(ptr)` |  |
-|  | `ld t1, %got_gprel_lo(ptr)(t1)` | `ld t1, %got_gprel_lo(ptr)(gp)` |
-|  | `sd t0, 0(t1), %got_gprel(ptr)` | `sd t0, 0(t1)` |
-| `ptr = foo;` | `la	t0, foo` | `la t0, foo`
-|  | `lui	t1, %got_gprel_hi(ptr)` |  |
-|  | `add	t1, t1, gp, %got_gprel(ptr)` |  |
-|  | `ld	t1, %got_gprel_lo(ptr)(t1)` | `ld t1, %got_gprel_lo(ptr)(gp)` |
-|  | `sd	t0, 0(t1), %got_gprel(ptr)` | `sd t0, 0(t1)` |
+| Source | Assembly | Relocations | Relaxed | Relocations |
+| --     | --       | --          | --      | --          |
+| `extern int src;` | `.extern src` |  |  |  |
+| `extern int dst;` | `.extern dst` |  |  |  |
+| `extern void *ptr;` | `.extern ptr` |  |  |  |
+| `static void foo(void);` | `.local foo` |  |  |  |
+|  | `.text` |  |  |  |
+| `dst = src;`	| `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add	t0, t0, gp, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `ld t0, %got_gprel_lo(src)(gp)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `lw		t2, 0(t0), %got_gprel(src)`	| `R_RISCV_GOT_GPREL_LOAD`		| `lw t2, 0(t0)` |
+|  | `lui	t1, %got_gprel_hi(dst)`		| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add	t1, t1, gp, %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		t1, %got_gprel_lo(dst)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `ld t1, %got_gprel_lo(dst)(gp)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `sw		t2, 0(t1), %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_STORE`	| `sw t2, 0(t1)` |
+| `ptr = &src;`	 | `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add 	t0, t0, gp, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		 t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `ld t0, %got_gprel_lo(src)(gp)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `lui 	t1, %got_gprel_hi(ptr)`		| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add 	t1, t1, gp, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld 	t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	|`ld t1, %got_gprel_lo(ptr)(gp)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `sd 	t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	|`sd t0, 0(t1)` |
+| `ptr = foo;`	| `la	t0, foo`			| `R_RISCV_PCREL_HI20`		| `la t0, foo`			| `R_RISCV_PCREL_HI20` |
+|  |						| `R_RISCV_PCREL_LO12_I`		|				| `R_RISCV_PCREL_LO12_I` |
+|  | `lui	t1, %got_gprel_hi(ptr)`		| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add	t1, t1, gp, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12`		| `ld t1, %got_gprel_lo(ptr)(gp)`	| `R_RISCV_GOT_GPREL_LO12_I` |
+|  | `sd		t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	| `sd t0, 0(t1)` |
 
 The table below demonstrates the results of relaxation when the global is allocated and referenced in the global data area of the executable object:
 
-| Source | Assembly | Relaxed |
-| -- | -- | -- |
-| `extern int src;` | `.extern src` |  |
-| `extern int dst;` | `.extern dst` |  |
-| `extern void *ptr;` | `.extern ptr` |  |
-| `static int lsrc;` | `.comm .Llsrc, 4` |  |
-| `static int ldst;` | `.comm .Lldst, 4` |  |
-| `static void foo(void);` | `.local foo` |  |
-|  | `.text` |  |
-| `dst = src;` | `lui	t0, %got_gprel_hi(src)` |  |
-|  | `add	t0, t0, gp, %got_gprel(src)` |  |
-|  | `ld	t0, %got_gprel_lo(src)(t0)` | `addi	t0, gp, %gprel_lo(src)` |
-|  | `lw	t2, 0(t0), %got_gprel(src)` | `lw	t2, %gprel_lo(src)(gp)` |
-|  | `lui	t1, %got_gprel_hi(dst)` |  |
-|  | `add	t1, t1, gp, %got_gprel(dst)` |  |
-|  | `ld	t1, %got_gprel_lo(dst)(t1)` | `addi	t1, gp, %gprel_lo(dst)` |
-|  | `sw	t2, 0(t1), %got_gprel(dst)` | `sw	t2, %gprel_lo(dst)(gp)` |
-| `ptr = &src;` | `lui	t0, %got_gprel_hi(src)` |  |
-|  | `add	t0, t0, gp, %got_gprel(src)` |  |
-|  | `ld	t0, %got_gprel_lo(src)(t0)` | `addi	t0, gp, %gprel_lo(src)` |
-|  | `lui	t1, %got_gprel_hi(ptr)` |  |
-|  | `add	t1, t1, gp, %got_gprel(ptr)` |  |
-|  | `ld	t1, %got_gprel_lo(ptr)(t1)` | `addi	t1, gp, %gprel_lo(ptr)` |
-|  | `sd	t0, 0(t1), %got_gprel(ptr)` | `sd	t0, %gprel_lo(ptr)(gp)` |
-| `ldst = &lsrc;` | `lui	t0, %gprel_hi(.Llsrc)` |  |
-|  | `add	t0, t0, gp, %gprel(.Llsrc)` |  |
-|  | `addi	t0, t0, %gprel_lo(.Llsrc)` |  `addi	t0, gp, %gprel_lo(.Llsrc)` |
-|  | `lui	t1, %gprel_hi(.Lldst)` |  |
-|  | `add	t1, t1, gp, %gprel(.Lldst)` |  `addi	t1, gp, %gprel_lo(.Lldst)` |
-|  | `sd	t0, %gprel_lo(.Lldst)(t1)` | `sd	t0, %gprel_lo(.Lldst)(gp)` |
-| `ptr = foo;` | `la	t0, foo` | `la	t0, foo` |
-|  | `lui	t1, %got_gprel_hi(ptr)` |  |
-|  | `add	t1, t1, gp, %got_gprel(ptr)` |  |
-|  | `ld	t1, %got_gprel_lo(ptr)(t1)` | `addi	t1, gp, %gprel_lo(ptr)` |
-|  | `sd	t0, 0(t1), %got_gprel(ptr)` | `sd	t0, %gprel_lo(ptr)(gp)` |
+| Source | Assembly | Relocations | Relaxed | Relocations |
+| --     | --       | --          | --      | --          |
+| `extern int src;` | `.extern src` |  |  |  |
+| `extern int dst;` | `.extern dst` |  |  |  |
+| `extern void *ptr;` | `.extern ptr` |  |  |  |
+| `static void foo(void);` | `.local foo` |  |  |  |
+|  | `.text` |  |  |  |
+| `dst = src;` | `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add	t0, t0, gp, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12`		| `addi	t0, gp, %gprel_lo(src)`	| `R_RISCV_GPREL_I` |
+|  | `lw		t2, 0(t0), %got_gprel(src)`	| `R_RISCV_GOT_GPREL_LOAD`		| `lw	t2, %gprel_lo(src)(gp)`	| `R_RISCV_GPREL_I` |
+|  | `lui	t1, %got_gprel_hi(dst)`		| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add	t1, t1, gp, %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		t1, %got_gprel_lo(dst)(t1)`	| `R_RISCV_GOT_GPREL_LO12`		| `addi	t1, gp, %gprel_lo(dst)`	| `R_RISCV_GPREL_I` |
+|  | `sw		t2, 0(t1), %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_STOR`		| `sw	t2, %gprel_lo(dst)(gp)`	| `R_RISCV_GPREL_S` |
+| `ptr = &src;` | `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add	t0, t0, gp, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t0, gp, %gprel_lo(src)`	| `R_RISCV_GPREL_I` |
+|  | `lui	t1, %got_gprel_hi(ptr)`		| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add	t1, t1, gp, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t1, gp, %gprel_lo(ptr)`	| `R_RISCV_GPREL_I` |
+|  | `sd		t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	| `sd	t0, %gprel_lo(ptr)(gp)`	| `R_RISCV_GPREL_S` |
+| `ldst = &lsrc;` | `lui	t0, %gprel_hi(.Llsrc)`	| `R_RISCV_GPREL_HI20`		|  |
+|  | `add	t0, t0, gp, %gprel(.Llsrc)`	| `R_RISCV_GPREL_ADD`		|  |
+|  | `addi	t0, t0, %gprel_lo(.Llsrc)`		| `R_RISCV_GPREL_LO12_I`		| `addi	t0, gp, %gprel_lo(.Llsrc)`	| `R_RISCV_GPREL_I` |
+|  | `lui	t1, %gprel_hi(.Lldst)`		|				|  |
+|  | `add	t1, t1, gp, %gprel(.Lldst)`	| `R_RISCV_GPREL_ADD`		| `addi	t1, gp, %gprel_lo(.Lldst)`	| `R_RISCV_GPREL_I` |
+|  | `sd		t0, %gprel_lo(.Lldst)(t1)`		|				| `sd	t0, %gprel_lo(.Lldst)(gp)`	| `R_RISCV_GPREL_S` |
+| `ptr = foo;` | `la	t0, foo`			| `R_RISCV_PCREL_HI20`		| `la	t0, foo`			| `R_RISCV_PCREL_HI20` |
+|  |						| `R_RISCV_PCREL_LO12_I`		|				| `R_RISCV_PCREL_LO12_I` |
+|  | `lui	t1, %got_gprel_hi(ptr)`		| `R_RISCV_GOT_GPREL_HI20`		|  |
+|  | `add	t1, t1, gp, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD`		|  |
+|  | `ld		t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12`		| `addi	t1, gp, %gprel_lo(ptr)`	| `R_RISCV_GPREL_I` |
+|  | `sd		t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	| `sd	t0, %gprel_lo(ptr)(gp)`	| `R_RISCV_GPREL_S` |
