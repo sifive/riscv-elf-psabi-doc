@@ -60,8 +60,8 @@ These new relocation types are added:
 | `R_RISCV_GPREL_LO12_S`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
 | `R_RISCV_GPREL_ADD` |  | `%gprel(<symbol>)` |
 | `R_RISCV_GPREL_LOAD` |  | `%gprel(<symbol>)` |
-| `R_RISCV_GOT_GPREL_HI20` | S + A - GP | `%got_gprel_hi(<symbol>)` |
-| `R_RISCV_GOT_GPREL_LO12_I` | S + A - GP | `%got_gprel_lo(<symbol>)` |
+| `R_RISCV_GOT_GPREL_HI20` | G + A - GP | `%got_gprel_hi(<symbol>)` |
+| `R_RISCV_GOT_GPREL_LO12_I` | G + A - GP | `%got_gprel_lo(<symbol>)` |
 | `R_RISCV_GOT_GPREL_ADD` |  | `%got_gprel(<symbol>)` |
 | `R_RISCV_GOT_GPREL_LOAD` |  | `%got_gprel(<symbol>)` |
 | `R_RISCV_GOT_GPREL_STORE` |  | `%got_gprel(<symbol>)` |
