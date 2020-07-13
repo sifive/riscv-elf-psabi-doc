@@ -155,7 +155,7 @@ The cost of the compact code model can be quite significant, so it is important 
 This macro is used to produce the literal for a local symbol:
 
 ```assembly
-la	<rd>, %gprel(<symbol>)
+lla	<rd>, %gprel(<symbol>)
 ```
 
 Which expands to:
@@ -190,6 +190,12 @@ If the GOT entry for the literal is allocated in the vicinity of the global data
 
 ```assembly
 ld	<rd>, %got_gprel_lo(<symbol>)(gp)		// R_RISCV_GOT_GPREL_LO12_I (symbol)
+```
+
+If the global symbol is allocated in the executable object, then this macro is equivalent to:
+
+```assembly
+lla	<rd>, %gprel(<symbol>)
 ```
 
 ### Loads and Stores
