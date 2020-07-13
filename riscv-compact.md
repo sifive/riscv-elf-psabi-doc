@@ -49,7 +49,7 @@ If the global variable has global scope, it may be allocated anywhere in the add
 These new relocation functions are added to the assembler:
 - `%gprel_hi(<symbol>)`, `%gprel_lo(<symbol>)`: offset from the global pointer to the symbol.
 - `%got_gprel_hi(<symbol>)`, `%got_gprel_lo(<symbol>)`: offset from the global pointer to the GOT entry for the symbol.
-- `%gprel(<symbol>)`, `%got_gprel(<symbol>)`: note instruction for relaxation purposes.
+- `%gprel(<symbol>)`, `%gprel_add(<symbol>)`, `%got_gprel(<symbol>)`, `%got_gprel_add(<symbol>)`: note instruction for relaxation purposes.
 
 These new relocation types are added:
 
@@ -58,11 +58,12 @@ These new relocation types are added:
 | `R_RISCV_GPREL_HI20` | S + A - GP | `%gprel_hi(<symbol>)` |
 | `R_RISCV_GPREL_LO12_I`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
 | `R_RISCV_GPREL_LO12_S`[^2] | S + A - GP | `%gprel_lo(<symbol>)` |
-| `R_RISCV_GPREL_ADD` |  | `%gprel(<symbol>)` |
+| `R_RISCV_GPREL_ADD` |  | `%gprel_add(<symbol>)` |
 | `R_RISCV_GPREL_LOAD` |  | `%gprel(<symbol>)` |
+| `R_RISCV_GPREL_STORE` |  | `%gprel(<symbol>)` |
 | `R_RISCV_GOT_GPREL_HI20` | G + A - GP | `%got_gprel_hi(<symbol>)` |
 | `R_RISCV_GOT_GPREL_LO12_I` | G + A - GP | `%got_gprel_lo(<symbol>)` |
-| `R_RISCV_GOT_GPREL_ADD` |  | `%got_gprel(<symbol>)` |
+| `R_RISCV_GOT_GPREL_ADD` |  | `%got_gprel_add(<symbol>)` |
 | `R_RISCV_GOT_GPREL_LOAD` |  | `%got_gprel(<symbol>)` |
 | `R_RISCV_GOT_GPREL_STORE` |  | `%got_gprel(<symbol>)` |
 | `R_RISCV_64_PCREL` | S + A - P |  |
