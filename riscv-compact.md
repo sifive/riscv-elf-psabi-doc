@@ -84,15 +84,15 @@ This new ELF header flag is added:
 
 ### Function Prolog
 
-Functions in executable objects expect that the `gp` register was initialized to the global pointer at program start up.
+Functions in executable objects expect that the `gp` register was initialized to the global pointer at program start up and the `gp` may be used as the base register to access objects in the global data area.
 
-Functions in shared objects that refer to the global pointer must setup the `gp` register in its prolog, for example:
+Functions in shared objects that refer to the global pointer must setup the an arbitrary register in its prolog instead which must be used as the base register to access objects in the global data area.  For example:
 
 ```assembly
-  auipc	gp, %pcrel_hi(__global_pointer__)
-  addi	gp, gp, %pcrel_lo(__global_pointer__)
-  ld	t0, 0(gp)
-  add	gp, gp, t0
+  auipc	s0, %pcrel_hi(__global_pointer__)
+  addi	s0, s0, %pcrel_lo(__global_pointer__)
+  ld	t0, 0(s0)
+  add	s0, s0, t0
   ...
   .section .text.__global_pointer__, "aMG", @progbits, 8, __global_pointer__, comdat
   .align 3
