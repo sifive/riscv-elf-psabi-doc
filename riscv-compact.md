@@ -170,12 +170,6 @@ add	<rd>, <rd>, <rt>, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
 addi	<rd>, <rd>, %gprel_lo(<symbol>)		// R_RISCV_GPREL_LO12_I (symbol)
 ```
 
-If the symbol is allocated within the global data area, then this sequence may be relaxed to:
-
-```assembly
-addi	<rd>, <rt>, %gprel_lo(<symbol>)		// R_RISCV_GPREL_I (symbol)
-```
-
 For a global symbol, this macro is used to produce its literal:
 
 ```assembly
@@ -194,12 +188,6 @@ Which expands to:
 lui	<rd>, %got_gprel_hi(<symbol>)			// R_RISCV_GOT_GPREL_HI20 (symbol)
 add	<rd>, <rd>, <rt>, %got_gprel(<symbol>)		// R_RISCV_GOT_GPREL_ADD (symbol)
 ld	<rd>, %got_gprel_lo(<symbol>)(<rd>)		// R_RISCV_GOT_GPREL_LO12_I (symbol)
-```
-
-If the GOT entry for the symbol is allocated in the vicinity of the global data area, then this sequence may be relaxed to:
-
-```assembly
-ld	<rd>, %got_gprel_lo(<symbol>)(<rt>)		// R_RISCV_GOT_GPREL_LO12_I (symbol)
 ```
 
 If the global symbol is allocated within the global data area and is referenced in an executable object, then this macro is equivalent to:
@@ -256,30 +244,6 @@ add	<rt>, <rt>, gp, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
 fs{h|w|d|q} <rd>, %gprel_lo(<symbol>)(<rt>)		// R_RISCV_GPREL_LO12_S (symbol)
 ```
 
-If the symbol is allocated within the global data area, then these sequences may be relaxed to:
-
-```assembly
-l{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)		// R_RISCV_GPREL_I (symbol)
-```
-
-And:
-
-```assembly
-s{b|h|w|d}	<rd>, %gprel_lo(<symbol>)(gp)		// R_RISCV_GPREL_S (symbol)
-```
-
-And:
-
-```assembly
-fl{h|w|d|q}	<rd>, %gprel_lo(<symbol>)(gp)		// R_RISCV_GPREL_I (symbol)
-```
-
-And:
-
-```assembly
-fs{h|w|d|q}	<rd>, %gprel_lo(<symbol>)(gp)		// R_RISCV_GPREL_S (symbol)
-```
-
 In an executable object, for loading from or storing to a global symbol, these macros are used:
 
 ```assembly
@@ -298,29 +262,6 @@ fl{h|w|d|q} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_LOAD (symbol)
 fs{h|w|d|q} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_STORE (symbol)
 ```
 
-If the global symbol is allocated and referenced within the global data area of the executable object, then these macros are equivalent to:
-
-```assembly
-l{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp)	// R_RISCV_GPREL_LO12_I (symbol)
-```
-
-And:
-
-```assembly
-s{b|h|w|d} <rd>, %gprel_lo(<symbol> + <offset>)(gp)	// R_RISCV_GPREL_LO12_S (symbol)
-```
-
-And:
-
-```assembly
-fl{h|w|d|q} <rd>, %gprel_lo(<symbol> + <offset>)(gp)	// R_RISCV_GPREL_LO12_I (symbol)
-```
-
-And:
-
-```assembly
-fs{h|w|d|q} <rd>, %gprel_lo(<symbol> + <offset>)(gp)	// R_RISCV_GPREL_LO12_S (symbol)
-```
 
 ## Appendix
 
