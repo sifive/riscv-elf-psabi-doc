@@ -3,6 +3,7 @@
 #### Evandro Menezes
 #### evandro.menezes@sifive.com
 
+
 ## Introduction
 
 Code models are based on the portion of the total address space that may be reached.  The native range of instructions usually determines the code models.  The range of instructions such as branches and loads may determine different code models to reach code and data in the address space.
@@ -13,6 +14,7 @@ When the code or data of a program is within the native range of instructions, i
 | --- | --- | --- |
 | **Small data** | Small model | Medium model |
 | **Large data** | Compact model | Large model |
+
 
 ## RISC-V Data Models
 
@@ -25,6 +27,7 @@ For ILP32, the whole address space is within the native range for both code and 
 
 For LP64, only 2GiB of the address space is within the native range for code and 4GiB for data. The existing small code models, `medlow` & `medany`, are not sufficient.
 
+
 ## RISC-V LP64 Code Models
 
 In order to access more than 2GiB of code and 4GiB of data, the native instructions are not sufficient:
@@ -35,6 +38,7 @@ In order to access more than 2GiB of code and 4GiB of data, the native instructi
 Thus, supporting the whole address space of 16EiB of code adds prohibitive costs to call sites. Therefore, neither the medium nor the large code models are feasible.
 
 However, the cost to support the address space of 16EiB of data may be acceptable. This compact code model is proposed below.
+
 
 ## RV64 Compact Model
 
@@ -144,9 +148,11 @@ The code examples below assume that the `gp` register, only used in executable o
 |			| `ld	t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`
 |			| `sd	t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`
 
-## Relaxation
+
+## Pseudo instructions
 
 The cost of the compact code model can be quite significant, so it is important to minimize this cost when the conditions allow for it. This can be done at link time through the addition of special relocation types to allow it. Additionally, additional assembly macros simplify adding such special relocations.
+
 
 ### Address Literals
 
@@ -299,7 +305,7 @@ The table below demonstrates the results of relaxation when the global is alloca
 The table below demonstrates the results of relaxation when the GOT entry for the global is in the vicinity of the global data area in the executable object, assuming that the register `gp` holds the address of `__global_pointer$`::
 
 | Source		| Assembly			| Relocations		| Relaxed			| Relocations
-| --			| --				| --			| -- 				|
+| --			| --				| --			| -- 				| --
 | `extern int src;`		| `.extern src`			|			|				|
 | `extern int dst;`		| `.extern dst`			|			|				|
 | `extern void *ptr;`	| `.extern ptr`			|			|				|
