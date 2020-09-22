@@ -271,7 +271,7 @@ fs{h|w|d|q} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_STORE (symbol)
 
 ## Appendix
 
-The table below demonstrates the results of relaxation when the global is allocated and referenced in the executable object, assuming that the register `gp` holds the address of `__global_pointer$`::
+The table below demonstrates the results of relaxation when the global is allocated and referenced in the executable object, assuming that the register `gp` holds the address of `__global_pointer$`:
 
 | Source		| Assembly			| Relocations		| Relaxed			| Relocations
 | --			| --				| --			| --				| --
@@ -302,7 +302,7 @@ The table below demonstrates the results of relaxation when the global is alloca
 |			| `ld	t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t1, t1, %gprel_lo(ptr)`	| `R_RISCV_PCREL_LO12_I`
 |			| `sd	t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	| `sd	t0, 0(t1)`		|
 
-The table below demonstrates the results of relaxation when the GOT entry for the global is in the vicinity of the global data area in the executable object, assuming that the register `gp` holds the address of `__global_pointer$`::
+The table below demonstrates the results of relaxation when the GOT entry for the global is in the vicinity of the global data area in the executable object, assuming that the register `gp` holds the address of `__global_pointer$`:
 
 | Source		| Assembly			| Relocations		| Relaxed			| Relocations
 | --			| --				| --			| -- 				| --
