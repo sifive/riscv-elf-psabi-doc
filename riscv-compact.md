@@ -81,7 +81,7 @@ These new relocation types are added:
 
 [^2]: The relocation types `R_RISCV_GPREL_LO12_I` and `R_RISCV_GPREL_LO12_S` are relaxed into `R_RISCV_GPREL_I` and `R_RISCV_GPREL_S` respectively.
 
-[^3]: The first source operand has the address of the global data area.
+[^3]: The first source operand (`rs1`) has the address of the global data area.
 
 
 ## Compact Model Coding Examples
