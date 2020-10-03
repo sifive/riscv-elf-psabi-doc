@@ -110,6 +110,37 @@ The expression `__global_pointer$ - .` results in the relocation type `R_RISCV_6
 
 Note that the code example above places the literal for the global data area in a comdat section that is shared by all references to this literal in the object.
 
+
+### Program Linkage Table
+
+Each PLT entry follows the pattern below:
+```assembly
+  lui	t3, %hi(<function>@.got.plt - .got.plt)
+  addi	t3, %lo(<function>@.got.plt - .got.plt)
+  jal	t1, <stub>@.plt
+  nop
+```
+
+Where:
+- `<function>@.got.plt` is the address of the GOT entry for the respective <function>.
+- `<stub>@.plt` is the address of a special stub, occupying three PLT entries, that contains the code below:
+```assembly
+1:
+  auipc	t0, %hi_pcrel(2f)	# address of 2f
+  addi	t0, %lo_pcrel(1b)
+  ld	t2, (t0)		# difference between .got.plt - 2f
+  add	t0, t0, t2		# address of .got.plt
+  add	t0, t0, t3		# address of <function>@.got.plt
+  ld	t3, (t0)		# address of <function>
+  jr	t3
+  nop
+2:
+  .quad	.got.plt - ., 0
+```
+
+The stub above may be repeated as needed in order to bring it within range of a referring PLT entry.
+
+
 ### Data Objects
 
 The code examples below assume that the `gp` register, only used in executable objects, points to the global data area.
@@ -204,6 +235,7 @@ If the global symbol is allocated within the global data area and is referenced 
 ```assembly
 lla	<rd>, %gprel(<symbol>), <rt>
 ```
+
 
 ### Loads and Stores
 
