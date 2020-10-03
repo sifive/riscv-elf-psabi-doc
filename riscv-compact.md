@@ -100,6 +100,7 @@ Functions in shared objects that refer to the global pointer must setup the an a
   ...
   .section .text.__global_pointer__, "aMG", @progbits, 8, __global_pointer__, comdat
   .align 3
+  .global __global_pointer__
   .hidden __global_pointer__
   .type	__global_pointer__, object
 __global_pointer__:
