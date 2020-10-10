@@ -319,24 +319,24 @@ The table below demonstrates the results of relaxation when the global is alloca
 | `static void foo(void);`	| `.local foo`			|			|				|
 |			| `.text`				|			|				|
 | `dst = src;`		| `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`	| `lui	t0, %gprel_hi(src)`		| `R_RISCV_GPREL_HI20`
-|			| `add	t0, gp, t0, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`	| `add	t0, t0, gp`		|
+|			| `add	t0, a0, t0, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`	| `add	t0, gp, t0`		|
 |			| `ld	t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t0, t0, %gprel_lo(src)`	| `R_RISCV_GPREL_LO12_I`
 |			| `lw	t2, 0(t0), %got_gprel(src)`	| `R_RISCV_GOT_GPREL_LOAD`	| `lw	t2, 0(t0)`		|
 |			| `lui	t1, %got_gprel_hi(dst)`	| `R_RISCV_GOT_GPREL_HI20`	| `lui	t1, %gprel_hi(dst)`		| `R_RISCV_GPREL_HI20`
-|			| `add	t1, gp, t1, %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_ADD`	| `add	t1, t1, gp`		|
+|			| `add	t1, a0, t1, %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_ADD`	| `add	t1, gp, t1`		|
 |			| `ld	t1, %got_gprel_lo(dst)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t1, t1, %gprel_lo(dst)`	| `R_RISCV_GPREL_LO12_I `
 |			| `sw	t2, 0(t1), %got_gprel(dst)`	| `R_RISCV_GOT_GPREL_STORE`	| `sw	t2, 0(t1)`		|
 | `ptr = &src;`		| `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`	| `lui	t0, %gprel_hi(src)`		| `R_RISCV_GPREL_HI20`
-|			| `add	t0, a0, t0, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`	| `add	t0, t0, gp`		|
+|			| `add	t0, a0, t0, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`	| `add	t0, gp, t0`		|
 |			| `ld	t0, %got_gprel_lo(src)(t0)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t0, t0, %gprel_lo(src)`	| `R_RISCV_GPREL_LO12_I `
 |			| `lui	t1, %got_gprel_hi(ptr)`	| `R_RISCV_GOT_GPREL_HI20`	| `lui	t1, %gprel_hi(ptr)`		| `R_RISCV_GPREL_HI20`
-|			| `add	t1, a0, t1, %got_gprel(ptr)` 	| `R_RISCV_GOT_GPREL_ADD`	| `add	t1, t1, gp`		|
+|			| `add	t1, a0, t1, %got_gprel(ptr)` 	| `R_RISCV_GOT_GPREL_ADD`	| `add	t1, gp, t1`		|
 |			| `ld	t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t1, t1, %gprel_lo(ptr)`	| `R_RISCV_GPREL_LO12_I `
 |			| `sd	t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	| `sd	t0, 0(t1)`		|
 | `ptr = foo;`		| `la	t0, foo`			| `R_RISCV_PCREL_HI20`	| `la	t0, foo` 			| `R_RISCV_PCREL_HI20`
 |			|				| `R_RISCV_PCREL_LO12_I`	|				| `R_RISCV_PCREL_LO12_I`
 |			| `lui	t1, %got_gprel_hi(ptr)`	| `R_RISCV_GOT_GPREL_HI20`	| `lui	t1, %gprel_hi(ptr)`		| `R_RISCV_GPREL_HI20`
-|			| `add	t1, gp, t1, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD`	| `add	t1, t1, gp`		|
+|			| `add	t1, a0, t1, %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_ADD`	| `add	t1, gp, t1`		|
 |			| `ld	t1, %got_gprel_lo(ptr)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `addi	t1, t1, %gprel_lo(ptr)`	| `R_RISCV_PCREL_LO12_I`
 |			| `sd	t0, 0(t1), %got_gprel(ptr)`	| `R_RISCV_GOT_GPREL_STORE`	| `sd	t0, 0(t1)`		|
 
@@ -350,7 +350,7 @@ The table below demonstrates the results of relaxation when the GOT entry for th
 | `static void foo(void);`	| `.local foo`			|			|				|
 |			| `.text`				|			|				|
 | `dst = src;`		| `lui	t0, %got_gprel_hi(src)`	| `R_RISCV_GOT_GPREL_HI20`	|				|
-|			| `add	t1, s0,ts0, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`	|				|
+|			| `add	t1, s0, t0, %got_gprel(src)`	| `R_RISCV_GOT_GPREL_ADD`	|				|
 |			| `ld	t2, %got_gprel_lo(src)(t1)`	| `R_RISCV_GOT_GPREL_LO12_I`	| `ld t2, %got_gprel_lo(src)(gp)`	| `R_RISCV_GOT_GPREL_LO12_I`
 |			| `lw	t3, 0(t2), %got_gprel(src)`	| `R_RISCV_GOT_GPREL_LOAD`	| `lw t3, 0(t2)`			|
 |			| `lui	t4, %got_gprel_hi(dst)`	| `R_RISCV_GOT_GPREL_HI20`	|				|
