@@ -207,8 +207,8 @@ Which expands to:
 
 ```assembly
 lui	<rd>, %gprel_hi(<symbol>)			// R_RISCV_GPREL_HI20 (symbol)
-add	<rd>, <rd>, <rt>, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
-addi	<rd>, <rd>, %gprel_lo(<symbol>)		// R_RISCV_GPREL_LO12_I (symbol)
+add	<rd>, <rt>, <rd>, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
+addi	<rd>, <rd>, %gprel_lo(<symbol>)			// R_RISCV_GPREL_LO12_I (symbol)
 ```
 
 For a global symbol, this macro is used to produce its literal:
@@ -227,7 +227,7 @@ Which expands to:
 
 ```assembly
 lui	<rd>, %got_gprel_hi(<symbol>)			// R_RISCV_GOT_GPREL_HI20 (symbol)
-add	<rd>, <rd>, <rt>, %got_gprel(<symbol>)		// R_RISCV_GOT_GPREL_ADD (symbol)
+add	<rd>, <rt>, <rd>, %got_gprel(<symbol>)		// R_RISCV_GOT_GPREL_ADD (symbol)
 ld	<rd>, %got_gprel_lo(<symbol>)(<rd>)		// R_RISCV_GOT_GPREL_LO12_I (symbol)
 ```
 
@@ -258,7 +258,7 @@ Which expand to:
 
 ```assembly
 lui	<rd>, %gprel_hi(<symbol>)			// R_RISCV_GPREL_HI20 (symbol)
-add	<rd>, <rd>, gp, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
+add	<rd>, gp, <rd>, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
 l{b|h|w|d} <rd>, %gprel_lo(<symbol>)(<rd>)		// R_RISCV_GPREL_LO12_I (symbol)
 ```
 
@@ -266,7 +266,7 @@ And:
 
 ```assembly
 lui	<rt>, %gprel_hi(<symbol>)			// R_RISCV_GPREL_HI20 (symbol)
-add	<rt>, <rt>, gp, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
+add	<rt>, gp, <rt>, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
 s{b|h|w|d} <rd>, %gprel_lo(<symbol>)(<rt>)		// R_RISCV_GPREL_LO12_S (symbol)
 ```
 
@@ -274,7 +274,7 @@ And:
 
 ```assembly
 lui	<rt>, %gprel_hi(<symbol>)			// R_RISCV_GPREL_HI20 (symbol)
-add	<rt>, <rt>, gp, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
+add	<rt>, gp, <rt>, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
 fl{h|w|d|q} <rd>, %gprel_lo(<symbol>)(<rt>)		// R_RISCV_GPREL_LO12_I (symbol)
 ```
 
@@ -282,7 +282,7 @@ And:
 
 ```assembly
 lui	<rt>, %gprel_hi(<symbol>)			// R_RISCV_GPREL_HI20 (symbol)
-add	<rt>, <rt>, gp, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
+add	<rt>, gp, <rt>, %gprel(<symbol>)		// R_RISCV_GPREL_ADD (symbol)
 fs{h|w|d|q} <rd>, %gprel_lo(<symbol>)(<rt>)		// R_RISCV_GPREL_LO12_S (symbol)
 ```
 
@@ -298,8 +298,8 @@ fs{h|w|d|q} <rd>, <offset>(<rt>), %got_gprel(<symbol>)
 Which expand to:
 
 ```assembly
-l{b|h|w|d} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_LOAD (symbol)
-s{b|h|w|d} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_STORE (symbol)
+l{b|h|w|d} <rd>, <offset>(<rt>)				// R_RISCV_GOT_GPREL_LOAD (symbol)
+s{b|h|w|d} <rd>, <offset>(<rt>)				// R_RISCV_GOT_GPREL_STORE (symbol)
 fl{h|w|d|q} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_LOAD (symbol)
 fs{h|w|d|q} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_STORE (symbol)
 ```
