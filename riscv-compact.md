@@ -72,10 +72,10 @@ These new relocation types are added:
 | `R_RISCV_GOT_GPREL_STORE` |  | `%got_gprel(<symbol>)`[^3] |
 | `R_RISCV_TLS_GOT_GPREL_HI20` |  | Macro `la.tls.ie.gprel`  |
 | `R_RISCV_TLS_GOT_GPREL_LO12_I` |  | Macro `la.tls.ie.gprel`  |
-| `R_RISCV_TLS_GOT_GPREL_ADD` | | [^3] |
+| `R_RISCV_TLS_GOT_GPREL_ADD` | | `%tls_ie_gprel(<symbol>)`[^3] |
 | `R_RISCV_TLS_GD_GPREL_HI20` |  | Macro `la.tls.gd.gprel`  |
 | `R_RISCV_TLS_GD_GPREL_LO12_I` |  | Macro `la.tls.gd.gprel` |
-| `R_RISCV_TLS_GD_GPREL_ADD` | | [^3] |
+| `R_RISCV_TLS_GD_GPREL_ADD` | | `%tls_gd_gprel(<symbol>)`[^3] |
 | `R_RISCV_64_PCREL` | S + A - P |  |
 
 [^1]: Legend for the relocation calculations:
@@ -328,8 +328,8 @@ Where:
 Which expands to:
 
 ```assembly
-lui	<rd>, %tls_gd_gprel_hi(<symbol>)			// R_RISCV_TLS_GD_GPREL_HI20 (symbol)
-add	<rd>, <rt>, <rd>, %tls_gd_gprel(<symbol>)		// R_RISCV_TLS_GD_GPREL_ADD (symbol)
+lui	<rd>, %tls_gd_gprel_hi(<symbol>)		// R_RISCV_TLS_GD_GPREL_HI20 (symbol)
+add	<rd>, <rt>, <rd>, %tls_gd_gprel(<symbol>)	// R_RISCV_TLS_GD_GPREL_ADD (symbol)
 addi	<rd>, <rd>, %tls_gd_gprel_lo(<symbol>)		// R_RISCV_TLS_GD_GPREL_LO12_I (symbol)
 ```
 
@@ -348,8 +348,8 @@ Where:
 Which expands to:
 
 ```assembly
-lui	<rd>, %tls_ie_gprel_hi(<symbol>)			// R_RISCV_TLS_GOT_GPREL_HI20 (symbol)
-add	<rd>, <rt>, <rd>,  %tls_ie_gprel(<symbol>)		// R_RISCV_TLS_GOT_GPREL_ADD (symbol)
+lui	<rd>, %tls_ie_gprel_hi(<symbol>)		// R_RISCV_TLS_GOT_GPREL_HI20 (symbol)
+add	<rd>, <rt>, <rd>,  %tls_ie_gprel(<symbol>)	// R_RISCV_TLS_GOT_GPREL_ADD (symbol)
 addi	<rd>, <rd>, %tls_ie_gprel_lo(<symbol>)		// R_RISCV_TLS_GOT_GPREL_LO12_I (symbol)
 ```
 
