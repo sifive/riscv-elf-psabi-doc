@@ -70,10 +70,12 @@ These new relocation types are added:
 | `R_RISCV_GOT_GPREL_ADD` |  | `%got_gprel_add(<symbol>)`[^3] |
 | `R_RISCV_GOT_GPREL_LOAD` |  | `%got_gprel(<symbol>)`[^3] |
 | `R_RISCV_GOT_GPREL_STORE` |  | `%got_gprel(<symbol>)`[^3] |
-| `R_RISCV_TLS_GOT_GPREL_HI20` | G + A - GP  | Macro `la.tls.ie.gprel`  |
-| `R_RISCV_TLS_GOT_GPREL_LO12_I` | G + A - GP  | Macro `la.tls.ie.gprel`  |
-| `R_RISCV_TLS_GD_GPREL_HI20` | G + A - GP  | Macro `la.tls.gd.gprel`  |
-| `R_RISCV_TLS_GD_GPREL_LO12_I` | G + A - GP  | Macro `la.tls.gd.gprel` |
+| `R_RISCV_TLS_GOT_GPREL_HI20` |  | Macro `la.tls.ie.gprel`  |
+| `R_RISCV_TLS_GOT_GPREL_LO12_I` |  | Macro `la.tls.ie.gprel`  |
+| `R_RISCV_TLS_GOT_GPREL_ADD` | | [^3] |
+| `R_RISCV_TLS_GD_GPREL_HI20` |  | Macro `la.tls.gd.gprel`  |
+| `R_RISCV_TLS_GD_GPREL_LO12_I` |  | Macro `la.tls.gd.gprel` |
+| `R_RISCV_TLS_GD_GPREL_ADD` | | [^3] |
 | `R_RISCV_64_PCREL` | S + A - P |  |
 
 [^1]: Legend for the relocation calculations:
@@ -309,7 +311,7 @@ fs{h|w|d|q} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_STORE (symbol)
 ```
 
 
-### Compact TLS access through GOT
+### TLS
 
 For TLS global dynamic and local dynamic:
 
@@ -321,13 +323,14 @@ Where:
 - `<rd>` is the destination register;
 - `<rt>` is the register holding the address of `__global_pointer$`[^1], defaulting to `gp`, if ommited;
 - `<symbol>` is the symbol.
+[^1]: `gp` for an executable object or an abitrary register for a shared object.
 
 Which expands to:
 
 ```assembly
-lui	<rd>, %got_gprel_hi(<symbol>)			// R_RISCV_TLS_GD_GPREL_HI20 (symbol)
-add	<rd>, <rd>, <rt>, %got_gprel(<symbol>)
-addi	<rd>, <rd>, %got_gprel_lo(<symbol>)		// R_RISCV_TLS_GD_GPREL_LO12_I (symbol)
+lui	<rd>, %tls_gd_gprel_hi(<symbol>)			// R_RISCV_TLS_GD_GPREL_HI20 (symbol)
+add	<rd>, <rt>, <rd>, %tls_gd_gprel(<symbol>)		// R_RISCV_TLS_GD_GPREL_ADD (symbol)
+addi	<rd>, <rd>, %tls_gd_gprel_lo(<symbol>)		// R_RISCV_TLS_GD_GPREL_LO12_I (symbol)
 ```
 
 For TLS initial executable:
@@ -340,13 +343,14 @@ Where:
 - `<rd>` is the destination register;
 - `<rt>` is the register holding the address of `__global_pointer$`[^1], defaulting to `gp`, if ommited;
 - `<symbol>` is the symbol.
+[^1]: `gp` for an executable object or an abitrary register for a shared object.
 
 Which expands to:
 
 ```assembly
-lui	<rd>, %got_gprel_hi(<symbol>)			// R_RISCV_TLS_GOT_GPREL_HI20 (symbol)
-add	<rd>, <rd>, <rt>, %got_gprel(<symbol>)
-addi	<rd>, <rd>, %got_gprel_lo(<symbol>)		// R_RISCV_TLS_GOT_GPREL_LO12_I (symbol)
+lui	<rd>, %tls_ie_gprel_hi(<symbol>)			// R_RISCV_TLS_GOT_GPREL_HI20 (symbol)
+add	<rd>, <rt>, <rd>,  %tls_ie_gprel(<symbol>)		// R_RISCV_TLS_GOT_GPREL_ADD (symbol)
+addi	<rd>, <rd>, %tls_ie_gprel_lo(<symbol>)		// R_RISCV_TLS_GOT_GPREL_LO12_I (symbol)
 ```
 
 
