@@ -70,6 +70,10 @@ These new relocation types are added:
 | `R_RISCV_GOT_GPREL_ADD` |  | `%got_gprel_add(<symbol>)`[^3] |
 | `R_RISCV_GOT_GPREL_LOAD` |  | `%got_gprel(<symbol>)`[^3] |
 | `R_RISCV_GOT_GPREL_STORE` |  | `%got_gprel(<symbol>)`[^3] |
+| `R_RISCV_TLS_GOT_GPREL_HI20` | G + A - GP  | Macro `la.tls.ie.gprel`  |
+| `R_RISCV_TLS_GOT_GPREL_LO12_I` | G + A - GP  | Macro `la.tls.ie.gprel`  |
+| `R_RISCV_TLS_GD_GPREL_HI20` | G + A - GP  | Macro `la.tls.gd.gprel`  |
+| `R_RISCV_TLS_GD_GPREL_LO12_I` | G + A - GP  | Macro `la.tls.gd.gprel` |
 | `R_RISCV_64_PCREL` | S + A - P |  |
 
 [^1]: Legend for the relocation calculations:
@@ -302,6 +306,47 @@ l{b|h|w|d} <rd>, <offset>(<rt>)				// R_RISCV_GOT_GPREL_LOAD (symbol)
 s{b|h|w|d} <rd>, <offset>(<rt>)				// R_RISCV_GOT_GPREL_STORE (symbol)
 fl{h|w|d|q} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_LOAD (symbol)
 fs{h|w|d|q} <rd>, <offset>(<rt>)			// R_RISCV_GOT_GPREL_STORE (symbol)
+```
+
+
+### Compact TLS access through GOT
+
+For TLS global dynamic and local dynamic:
+
+```assembly
+la.tls.gd.gprel	<rd>, <symbol>, <rt>
+```
+
+Where:
+- `<rd>` is the destination register;
+- `<rt>` is the register holding the address of `__global_pointer$`[^1], defaulting to `gp`, if ommited;
+- `<symbol>` is the symbol.
+
+Which expands to:
+
+```assembly
+lui	<rd>, %got_gprel_hi(<symbol>)			// R_RISCV_TLS_GD_GPREL_HI20 (symbol)
+add	<rd>, <rd>, <rt>, %got_gprel(<symbol>)
+addi	<rd>, <rd>, %got_gprel_lo(<symbol>)		// R_RISCV_TLS_GD_GPREL_LO12_I (symbol)
+```
+
+For TLS initial executable:
+
+```assembly
+la.tls.ie.gprel	<rd>, <symbol>, <rt>
+```
+
+Where:
+- `<rd>` is the destination register;
+- `<rt>` is the register holding the address of `__global_pointer$`[^1], defaulting to `gp`, if ommited;
+- `<symbol>` is the symbol.
+
+Which expands to:
+
+```assembly
+lui	<rd>, %got_gprel_hi(<symbol>)			// R_RISCV_TLS_GOT_GPREL_HI20 (symbol)
+add	<rd>, <rd>, <rt>, %got_gprel(<symbol>)
+addi	<rd>, <rd>, %got_gprel_lo(<symbol>)		// R_RISCV_TLS_GOT_GPREL_LO12_I (symbol)
 ```
 
 
