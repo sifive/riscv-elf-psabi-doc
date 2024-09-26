@@ -1,0 +1,47 @@
+:company: RISC-V.org
+:revlifecycle: dev
+:revnumber: 1.1
+ifeval::["{revlifecycle}" == "dev"]
+:revdate: {date}
+:revremark: Pre-release
+:refrev: {date}-draft
+endif::[]
+ifeval::["{revlifecycle}" == "stable"]
+:revremark: Stable
+:refrev: {revnumber}
+endif::[]
+ifeval::["{revlifecycle}" == "frozen"]
+:revremark: Frozen
+:refrev: {revnumber}
+endif::[]
+ifeval::["{revlifecycle}" == "ratified"]
+:revremark: Ratified
+:refrev: {revnumber}
+endif::[]
+:url-riscv: http://riscv.org
+:doctype: book
+:preface-title: Preamble
+:colophon:
+:appendix-caption: Appendix
+:imagesdir: images
+:title-logo-image: image:risc-v_logo.png[pdfwidth=3.25in,align=center]
+//:back-cover-image: image:backpage.png[opacity=25%]
+:experimental:
+:reproducible:
+:icons: font
+:lang: en
+:listing-caption: Listing
+:sectnums:
+:toc: left
+:toclevels: 3
+:source-highlighter: pygments
+ifdef::backend-pdf[]
+:source-highlighter: coderay
+endif::[]
+:data-uri:
+:hide-uri-scheme:
+:stem: latexmath
+:footnote:
+:xrefstyle: short
+
+include::preamble.adoc[]
