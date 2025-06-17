@@ -200,7 +200,7 @@ The cost of the compact code model can be quite significant, so it is important 
 This macro is used to produce the literal for a local symbol:
 
 ```assembly
-lla	<rd>, %gprel(<symbol>), <rt>
+lla.gprel	<rd>, <symbol>, <rt>
 ```
 
 Where:
@@ -220,7 +220,7 @@ addi	<rd>, <rd>, %gprel_lo(<symbol>)			// R_RISCV_GPREL_LO12_I (symbol)
 For a global symbol, this macro is used to produce its literal:
 
 ```assembly
-la	<rd>, %got_gprel(<symbol>), <rt>
+la.got.gprel	<rd>, <symbol>, <rt>
 ```
 
 Where:
@@ -234,13 +234,13 @@ Which expands to:
 ```assembly
 lui	<rd>, %got_gprel_hi(<symbol>)			// R_RISCV_GOT_GPREL_HI20 (symbol)
 add	<rd>, <rt>, <rd>, %got_gprel(<symbol>)		// R_RISCV_GOT_GPREL_ADD (symbol)
-ld	<rd>, %got_gprel_lo(<symbol>)(<rd>)		// R_RISCV_GOT_GPREL_LO12_I (symbol)
+l{w|d}	<rd>, %got_gprel_lo(<symbol>)(<rd>)		// R_RISCV_GOT_GPREL_LO12_I (symbol)
 ```
 
 If the global symbol is allocated within the global data area and is referenced in an executable object, then this macro is equivalent to:
 
 ```assembly
-lla	<rd>, %gprel(<symbol>), <rt>
+lla.gprel	<rd>,<symbol>, <rt>
 ```
 
 
@@ -350,7 +350,7 @@ Which expands to:
 ```assembly
 lui	<rd>, %tls_ie_gprel_hi(<symbol>)		// R_RISCV_TLS_GOT_GPREL_HI20 (symbol)
 add	<rd>, <rt>, <rd>,  %tls_ie_gprel(<symbol>)	// R_RISCV_TLS_GOT_GPREL_ADD (symbol)
-addi	<rd>, <rd>, %tls_ie_gprel_lo(<symbol>)		// R_RISCV_TLS_GOT_GPREL_LO12_I (symbol)
+l{w|d}	<rd>, %tls_ie_gprel_lo(<symbol>)(<rd>)		// R_RISCV_TLS_GOT_GPREL_LO12_I (symbol)
 ```
 
 
